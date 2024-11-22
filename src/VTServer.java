@@ -9,6 +9,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Objects;
 import java.util.Vector;
 
 public class VTServer extends JFrame {
@@ -178,7 +179,8 @@ public class VTServer extends JFrame {
             try {
                 ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(clientSocket.getInputStream()));
                 out = new ObjectOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
-                int i = 0;
+                int i = 0; // 현재 접속해 있는 유저의 index
+                int v = 0; // 현재 보고 있는 상영회의 index
                 while ((user = (UserObj) in.readObject()) != null) {
                     switch (user.mode) {
                         case UserObj.MODE_LogIn -> {
@@ -192,24 +194,31 @@ public class VTServer extends JFrame {
                             userList.add(user);
                             send(videoList); // 상영회 목록 화면을 나타내기 위함
                         }
-                        case UserObj.MODE_LogOut -> {
+                        case UserObj.MODE_LogOut -> { // while문을 탈출하면 바로 로그아웃
                             break;
                         }
-                        case UserObj.MODE_VT -> { // 유저가 상영회에 접속할 때 해야할 것
-                            for(int v=0;v<videoList.size();v++) {
-                                if(user.chat.equals(videoList.get(v).id)) send(videoList.get(v));
+                        case UserObj.MODE_JoinVideo -> { // 유저가 상영회에 접속할 때 해야할 것
+                            for(v = 0;v<videoList.size();v++) {
+                                if(user.chat.equals(videoList.get(v).id)) {
+                                    send(videoList.get(v)); // 그 유저에게 videoObject를 전송해 비디오 정보를 알 수 있게 함
+                                }
                             }
                         }
-                        case UserObj.MODE_SV -> {
+                        case UserObj.MODE_StartVideo -> { // 유저가 상영회를 열었을 때
                             videoList.add(user.video);
                         }
-                        case UserObj.MODE_Exit -> {
+                        case UserObj.MODE_EndVideo -> { // 유저가 상영회를 종료했을 때
                             videoList.remove(user.video);
-                            user.mode = UserObj.MODE_LogIn;
-                            send(user);
+                            send(videoList); // 다시 상영회 목록을 보여줘야 함
                         }
                         case UserObj.MODE_ChatStr -> {
-                            broadcasting(user);
+                            broadcasting(user); // userObj의 chat 변수에 참조하여 이름 및 채팅을 참조하기 위함
+                        }
+                        case UserObj.MODE_WatchingVideo -> {
+                            if(user.video.videoMode != videoList.get(v).videoMode) { // 영상 시청 중 비디오의 상태가 바뀔 때
+                                videoList.get(v).videoMode = user.video.videoMode;
+                                broadcasting(videoList.get(v));
+                            }
                         }
                     }
                 }
@@ -264,6 +273,12 @@ public class VTServer extends JFrame {
         public void broadcasting(UserObj user) {
             for(ClientHandler c : ClientHandlerList) {
                 c.send(user);
+            }
+        }
+
+        public void broadcasting(VideoObj video) {
+            for(ClientHandler c : ClientHandlerList) {
+                c.send(video);
             }
         }
 
