@@ -172,6 +172,7 @@ public class VTServer extends JFrame {
 
         public ClientHandler(Socket clientSocket) {
             this.clientSocket = clientSocket;
+
         }
 
         void receiveMessage(Socket cs) {
@@ -184,15 +185,21 @@ public class VTServer extends JFrame {
                 while ((user = (UserObj) in.readObject()) != null) {
                     switch (user.mode) {
                         case UserObj.MODE_LogIn -> {
-                        for( i = 0; i< userList.size(); i++){ // 이거는 닉네임 중복 없게 하는 것
-                            if(user.name.equals(userList.get(i).name)) {
-                                printDisplay(">> 이미 존재하는 닉네임입니다.");
-                                break;
+                            if(!userList.isEmpty()){
+                                for( i = 0; i< userList.size(); i++){ // 이거는 닉네임 중복 없게 하는 것
+                                    if(user.name.equals(userList.get(i).name)) {
+                                        printDisplay(">> 이미 존재하는 닉네임입니다.");
+                                        break;
+                                    }
+                                }
                             }
-                        }
-                            ClientHandlerList.add(this);
                             userList.add(user);
-                            send(videoList); // 상영회 목록 화면을 나타내기 위함
+                            printDisplay(">> 현재 핸들러 수 :"+String.valueOf(ClientHandlerList.size()));
+                            if(videoList.isEmpty()){
+
+                            }else{
+                                send(videoList); // 상영회 목록 화면을 나타내기 위함
+                            }
                         }
                         case UserObj.MODE_LogOut -> { // while문을 탈출하면 바로 로그아웃
                             break;
@@ -206,19 +213,21 @@ public class VTServer extends JFrame {
                         }
                         case UserObj.MODE_StartVideo -> { // 유저가 상영회를 열었을 때
                             videoList.add(user.video);
+                            v=videoList.size()-1;
+                            printDisplay(">> 상영회를 추가하였습니다. 현재 상영회 수: "+videoList.size());
                         }
                         case UserObj.MODE_EndVideo -> { // 유저가 상영회를 종료했을 때
                             videoList.remove(user.video);
                             send(videoList); // 다시 상영회 목록을 보여줘야 함
                         }
                         case UserObj.MODE_ChatStr -> {
+                            printDisplay("채팅 >> "+user.name+" : "+user.chat);
                             broadcasting(user); // userObj의 chat 변수에 참조하여 이름 및 채팅을 참조하기 위함
                         }
                         case UserObj.MODE_WatchingVideo -> {
-                            if(user.video.videoMode != videoList.get(v).videoMode) { // 영상 시청 중 비디오의 상태가 바뀔 때
-                                videoList.get(v).videoMode = user.video.videoMode;
-                                broadcasting(videoList.get(v));
-                            }
+                            printDisplay(user.video.o_name+"님의 상영회 상태 변경: "+ user.video.videoMode);
+                            videoList.get(v).videoMode = user.video.videoMode;
+                            broadcasting(videoList.get(v));
                         }
                     }
                 }
@@ -254,7 +263,7 @@ public class VTServer extends JFrame {
 
         public void send(UserObj user) {
             try {
-                out.writeObject(user);
+                out.writeObject(new UserObj(user));
                 out.flush();
             } catch (IOException e) {
                 System.err.println(">> 클라이언트 일반 전송 오류: "+e.getMessage());
@@ -263,7 +272,7 @@ public class VTServer extends JFrame {
 
         public void send(VideoObj video) {
             try {
-                out.writeObject(video);
+                out.writeObject(new VideoObj(video));
                 out.flush();
             } catch (IOException e) {
                 System.err.println(">> 클라이언트 일반 전송 오류: "+e.getMessage());
@@ -289,6 +298,6 @@ public class VTServer extends JFrame {
     }
 
     public static void main(String[] args) {
-        new VTServer(54321);
+        new VTServer(54320);
     }
 }

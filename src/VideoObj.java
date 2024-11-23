@@ -1,8 +1,5 @@
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import javax.swing.ImageIcon;
 
 public class VideoObj implements Serializable {
     @Serial
@@ -20,6 +17,14 @@ public class VideoObj implements Serializable {
     int videoTime;
     int user_num = 1;
 
+    VideoObj (VideoObj videoObj){
+        this.id = videoObj.id;
+        this.name = videoObj.name;
+        this.o_name = videoObj.o_name;
+        this.videoMode = videoObj.videoMode;
+        this.videoTime = videoObj.videoTime;
+        this.user_num = videoObj.user_num;
+    }
 
     VideoObj(String name) {
         this.name = name;

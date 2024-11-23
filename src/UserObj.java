@@ -12,11 +12,20 @@ public class UserObj implements Serializable {
   public final static int MODE_StartVideo = 5; // 상영회 개설
   public final static int MODE_EndVideo = 6; // 상영회 종료
   public final static int MODE_ChatStr = 7;
+  public final static int MODE_VideoList = 8;
+
 
   String name;
   String chat;
   int mode;
   VideoObj video;
+
+  UserObj(UserObj userObj){
+    this.name = userObj.name;
+    this.chat = userObj.chat;
+    this.mode = userObj.mode;
+    this.video = new VideoObj(userObj.video);
+  }
 
   UserObj(String name, int mode) { // 클라이언트에서 로그인이나 로그아웃
     this.name = name;
