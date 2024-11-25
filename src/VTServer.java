@@ -121,6 +121,9 @@ public class VTServer extends JFrame {
 
     public void startServer() {
         Socket clientSocket = null;
+        ClientHandlerList = new Vector<>();
+        userList = new Vector<>();
+        videoList = new Vector<>();
 
         try {
             serverSocket = new ServerSocket(port);
@@ -144,6 +147,8 @@ public class VTServer extends JFrame {
     public void disconnect() {
         try {
             if (serverSocket != null && !serverSocket.isClosed()) {
+                userList = null;
+                videoList = null;
                 serverSocket.close();
             }
             ClientHandlerList.clear();
@@ -221,13 +226,15 @@ public class VTServer extends JFrame {
                             send(videoList); // 다시 상영회 목록을 보여줘야 함
                         }
                         case UserObj.MODE_ChatStr -> {
-                            printDisplay("채팅 >> "+user.name+" : "+user.chat);
+                            String chat = user.name + " : " + user.chat;
+                            printDisplay(chat);
+                            user.chat = chat;
                             broadcasting(user); // userObj의 chat 변수에 참조하여 이름 및 채팅을 참조하기 위함
                         }
                         case UserObj.MODE_WatchingVideo -> {
                             printDisplay(user.video.o_name+"님의 상영회 상태 변경: "+ user.video.videoMode);
                             videoList.get(v).videoMode = user.video.videoMode;
-                            broadcasting(videoList.get(v));
+                            broadcasting(user);
                         }
                     }
                 }
