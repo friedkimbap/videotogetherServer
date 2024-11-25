@@ -8,11 +8,10 @@ public class UserObj implements Serializable {
   public final static int MODE_LogIn = 1;
   public final static int MODE_LogOut = 2;
   public final static int MODE_JoinVideo = 3; // 상영회 참가
-  public final static int MODE_WatchingVideo = 4;
+  public final static int MODE_WatchingVideo = 4; // 상영회 시청 중
   public final static int MODE_StartVideo = 5; // 상영회 개설
   public final static int MODE_EndVideo = 6; // 상영회 종료
   public final static int MODE_ChatStr = 7;
-  public final static int MODE_VideoList = 8;
 
 
   String name;

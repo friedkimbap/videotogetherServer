@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="VideoTogetherServer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/VideoTogetherServer_jar</output-path>
+    <root id="archive" name="VideoTogetherServer.jar">
+      <element id="module-output" name="VideoTogetherServer" />
+    </root>
+  </artifact>
+</component>

@@ -144,6 +144,8 @@ public class VTServer extends JFrame {
     public void disconnect() {
         try {
             if (serverSocket != null && !serverSocket.isClosed()) {
+                userList.clear();
+                videoList.clear();
                 serverSocket.close();
             }
             ClientHandlerList.clear();
@@ -177,11 +179,11 @@ public class VTServer extends JFrame {
 
         void receiveMessage(Socket cs) {
             UserObj user = null;
+            int i = 0; // 현재 접속해 있는 유저의 index
+            int v = 0; // 현재 보고 있는 상영회의 index
             try {
                 ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(clientSocket.getInputStream()));
                 out = new ObjectOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
-                int i = 0; // 현재 접속해 있는 유저의 index
-                int v = 0; // 현재 보고 있는 상영회의 index
                 while ((user = (UserObj) in.readObject()) != null) {
                     switch (user.mode) {
                         case UserObj.MODE_LogIn -> {
@@ -221,25 +223,34 @@ public class VTServer extends JFrame {
                             send(videoList); // 다시 상영회 목록을 보여줘야 함
                         }
                         case UserObj.MODE_ChatStr -> {
-                            printDisplay("채팅 >> "+user.name+" : "+user.chat);
+                            String chat = user.name+" : "+user.chat;
+                            user.chat = chat;
+                            printDisplay("채팅 >> " + chat);
                             broadcasting(user); // userObj의 chat 변수에 참조하여 이름 및 채팅을 참조하기 위함
                         }
                         case UserObj.MODE_WatchingVideo -> {
                             printDisplay(user.video.o_name+"님의 상영회 상태 변경: "+ user.video.videoMode);
-                            videoList.get(v).videoMode = user.video.videoMode;
-                            broadcasting(videoList.get(v));
+                            videoList.set(v, user.video);
+                            printDisplay("바뀔 재생 시간 >>"+user.video.videoTime);
+                            broadcasting(user);
                         }
                     }
                 }
 
                 ClientHandlerList.removeElement(this);
                 printDisplay(">> "+ user.name + " 퇴장. 현재 참가자 수: " + ClientHandlerList.size());
-                userList.removeElement(user);
+                userList.remove(i);
             } catch (IOException e) {
                 e.printStackTrace();
                 ClientHandlerList.removeElement(this);
+                printDisplay(user.video.o_name+"님의 상영회가 종료되었습니다.");
                 printDisplay(">> "+ user.name + " 연결 끊김. 현재 참가자 수: " + ClientHandlerList.size());
-                userList.removeElement(user);
+                if(videoList.get(v).o_name.equals(user.video.o_name)) {
+                    user.mode = UserObj.MODE_EndVideo;
+                    broadcasting(user);
+                    videoList.remove(v);
+                }
+                userList.remove(i);
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException(e);
             } finally {
