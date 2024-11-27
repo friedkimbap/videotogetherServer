@@ -121,6 +121,9 @@ public class VTServer extends JFrame {
 
     public void startServer() {
         Socket clientSocket = null;
+        ClientHandlerList = new Vector<>();
+        userList = new Vector<>();
+        videoList = new Vector<>();
 
         try {
             serverSocket = new ServerSocket(port);
